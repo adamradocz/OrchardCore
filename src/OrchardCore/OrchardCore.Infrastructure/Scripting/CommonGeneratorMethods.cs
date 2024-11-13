@@ -50,7 +50,12 @@ public class CommonGeneratorMethods : IGlobalMethodProvider
             using var uncompressedStream = MemoryStreamFactory.GetStream((int)compressedStream.Length);
             gZip.CopyTo(uncompressedStream);
 
-            return Convert.ToBase64String(uncompressedStream.GetBuffer(), 0, (int)uncompressedStream.Length);
+            var readOnlySequence = uncompressedStream.GetReadOnlySequence();
+            var base64String = readOnlySequence.IsSingleSegment ?
+                Convert.ToBase64String(readOnlySequence.FirstSpan) :
+                Convert.ToBase64String(uncompressedStream.GetBuffer(), 0, (int)uncompressedStream.Length);
+
+            return base64String;
         }),
     };
 }

@@ -50,7 +50,12 @@ public class FilesScriptEngine : IScriptingEngine
             memoryStream.WriteTo(fileStream);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
-            return Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+            var readOnlySequence = memoryStream.GetReadOnlySequence();
+            var base64String = readOnlySequence.IsSingleSegment ?
+                Convert.ToBase64String(readOnlySequence.FirstSpan) :
+                Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+
+            return base64String;
         }
         else
         {
